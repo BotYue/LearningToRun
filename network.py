@@ -296,7 +296,7 @@ class DDPGActorNet(nn.Module, BasicNet):
         x = self.to_torch_variable(x)
         x = F.relu(self.layer1(x))
         x = F.relu(self.layer2(x))
-        x = F.tanh(self.layer3(x))
+        x = F.sigmoid(self.layer3(x))
         return x
 
     def predict(self, x, to_numpy=True):

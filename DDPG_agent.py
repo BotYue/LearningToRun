@@ -63,7 +63,7 @@ class DDPGAgent:
             action = self.actor.predict(np.stack([state])).flatten()
             if not deterministic:
                 action += self.random_process.sample()
-            action = np.clip(action, -1, 1)
+            action = np.clip(action, 0, 1)
             next_state, reward, done, info = self.task.step(action)
             if not deterministic:
                 self.replay.feed([state, action, reward, next_state, int(done)])
