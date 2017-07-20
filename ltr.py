@@ -8,6 +8,7 @@ import opensim as osim
 from osim.env import RunEnv
 
 class LTR(BasicTask):
+    name = 'LearningToRun'
     success_threshold = 2000
     def __init__(self):
         BasicTask.__init__(self)
@@ -35,12 +36,12 @@ def ddpg_agent():
         lambda params: torch.optim.Adam(params, lr=1e-3, weight_decay=0.01)
     config['replay_fn'] = lambda: HighDimActionReplay(memory_size=1000000, batch_size=64)
     config['discount'] = 0.99
-    config['step_limit'] = 200
+    config['step_limit'] = 0
     config['tau'] = 0.001
-    config['exploration_steps'] = 100
+    config['exploration_steps'] = 1000
     config['random_process_fn'] = \
         lambda: OrnsteinUhlenbeckProcess(size=action_dim, theta=0.15, sigma=0.2)
-    config['test_interval'] = 10
+    config['test_interval'] = 100
     config['test_repetitions'] = 10
     config['tag'] = ''
     config['logger'] = gym.logger
