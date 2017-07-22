@@ -6,6 +6,10 @@ import traceback
 from random_process import *
 import opensim as osim
 from osim.env import RunEnv
+from osim.http.client import Client
+from osim.env import RunEnv
+from logger import Logger
+import math
 
 class LTR(BasicTask):
     name = 'LearningToRun'
@@ -15,12 +19,13 @@ class LTR(BasicTask):
         self.env = RunEnv(visualize=False)
 
     def step(self, action):
+        action = np.clip(action, 0, 1)
         next_state, reward, done, info = self.env.step(action)
-        return np.asarray(next_state), reward, done, info
+        return np.asarray(next_state) / math.pi, reward, done, info
 
     def reset(self):
-        state = self.env.reset()
-        return np.asarray(state)
+        state = self.env.reset(difficulty=0, seed=np.random.randint(0, 10000000))
+        return np.asarray(state) / math.pi
 
 def ddpg_agent():
     task_fn = lambda: LTR()
@@ -46,7 +51,76 @@ def ddpg_agent():
     config['tag'] = ''
     config['logger'] = gym.logger
     agent = DDPGAgent(**config)
+    logger = Logger('./log')
+    agent.tf_logger = logger
     agent.run()
+
+def test():
+    task_fn = lambda: LTR()
+    task = task_fn()
+    state_dim = task.env.observation_space.shape[0]
+    action_dim = task.env.action_space.shape[0]
+    with open('data/ddpg-model-LearningToRun.bin', 'rb') as f:
+        model = pickle.load(f)
+    actor = DDPGActorNet(state_dim, action_dim)
+    actor.load_state_dict(model)
+
+    logger = Logger('./log')
+
+    env = RunEnv(visualize=False)
+    state = env.reset(difficulty=0)
+    print state
+    done = False
+    total_reward = 0.0
+    step = 0
+    while not done:
+        action = actor.predict(np.stack([state]), to_numpy=True).flatten()
+        state, reward, done, info = env.step(action)
+        total_reward += reward
+        step += 1
+        logger.histo_summary('input', actor.input, step)
+        logger.histo_summary('act1', actor.act1, step)
+        logger.histo_summary('act2', actor.act2, step)
+        logger.histo_summary('pre_act3', actor.pre_act3, step)
+        logger.histo_summary('act3', actor.act3, step)
+        for tag, value in actor.named_parameters():
+            tag = tag.replace('.', '/')
+            logger.histo_summary(tag, value.data.numpy(), step)
+
+    print total_reward
+    print step
+
+def submit():
+    remote_base = "http://grader.crowdai.org:1729"
+    crowdai_token = "[YOUR_CROWD_AI_TOKEN_HERE]"
+    client = Client(remote_base)
+
+    task_fn = lambda: LTR()
+    task = task_fn()
+    state_dim = task.env.observation_space.shape[0]
+    action_dim = task.env.action_space.shape[0]
+    with open('data/ddpg-model-LearningToRun.bin', 'rb') as f:
+        model = pickle.load(f)
+    actor = DDPGActorNet(state_dim, action_dim)
+    actor.load_state_dict(model)
+
+    # Create environment
+    state = client.env_create(crowdai_token)
+
+    total_reward = 0.0
+    while True:
+        action = actor.predict(np.stack([state]), to_numpy=True).flatten()
+        [state, reward, done, info] = client.env_step(action, True)
+        total_reward += reward
+        print(observation)
+        if done:
+            observation = client.env_reset()
+            if not observation:
+                break
+    print total_reward
+    client.submit()
+
 
 if __name__ == '__main__':
     ddpg_agent()
+    # test()

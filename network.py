@@ -294,9 +294,15 @@ class DDPGActorNet(nn.Module, BasicNet):
 
     def forward(self, x):
         x = self.to_torch_variable(x)
+        # self.input = x.data.numpy()
         x = F.relu(self.layer1(x))
+        # self.act1 = x.data.numpy()
         x = F.relu(self.layer2(x))
-        x = F.sigmoid(self.layer3(x))
+        # self.act2 = x.data.numpy()
+        x = self.layer3(x)
+        # self.pre_act3 = x.data.numpy()
+        x = F.sigmoid(x)
+        # self.act3 = x.data.numpy()
         return x
 
     def predict(self, x, to_numpy=True):
