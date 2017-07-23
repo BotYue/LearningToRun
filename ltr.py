@@ -34,7 +34,7 @@ def ddpg_agent():
     action_dim = task.env.action_space.shape[0]
     config = dict()
     config['task_fn'] = task_fn
-    config['actor_network_fn'] = lambda: DDPGActorNet(state_dim, action_dim)
+    config['actor_network_fn'] = lambda: DDPGActorNet(state_dim, action_dim, F.sigmoid)
     config['critic_network_fn'] = lambda: DDPGCriticNet(state_dim, action_dim)
     config['actor_optimizer_fn'] = lambda params: torch.optim.Adam(params, lr=1e-4)
     config['critic_optimizer_fn'] =\
@@ -49,10 +49,8 @@ def ddpg_agent():
     config['test_interval'] = 100
     config['test_repetitions'] = 10
     config['tag'] = ''
-    config['logger'] = gym.logger
+    config['logger'] = Logger('./log', gym.logger, True)
     agent = DDPGAgent(**config)
-    logger = Logger('./log')
-    agent.tf_logger = logger
     agent.run()
 
 def test():
