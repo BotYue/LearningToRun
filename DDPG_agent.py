@@ -65,8 +65,8 @@ class DDPGAgent:
             if not deterministic:
                 if self.total_steps < self.exploration_steps:
                     action = np.random.uniform(0, 1, action.shape)
-                # else:
-                #     action += self.random_process.sample()
+                else:
+                    action += self.random_process.sample()
             self.tf_logger.histo_summary('noised_action', action, self.total_steps)
             next_state, reward, done, info = self.task.step(action)
             if not deterministic:
