@@ -11,7 +11,7 @@ import json
 
 parser = argparse.ArgumentParser(description='TRPO.')
 # these parameters should stay the same
-parser.add_argument("--task", type=str, default='Reacher-v1')
+parser.add_argument("--task", type=str, default='BipedalWalker-v2')
 parser.add_argument("--timesteps_per_batch", type=int, default=10000)
 parser.add_argument("--n_steps", type=int, default=6000000)
 parser.add_argument("--gamma", type=float, default=.99)
@@ -47,6 +47,7 @@ history["rollout_time"] = []
 history["learn_time"] = []
 history["mean_reward"] = []
 history["timesteps"] = []
+history['maxkl'] = []
 
 # start it off with a big negative number
 last_reward = -1000000
