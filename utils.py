@@ -1,6 +1,29 @@
 import tensorflow as tf
 import numpy as np
 import scipy.signal
+import opensim as osim
+from osim.env import RunEnv
+import math
+
+class LTR:
+    name = 'LearningToRun'
+    success_threshold = 2000
+    def __init__(self):
+        self.env = RunEnv(visualize=False)
+        self.observation_space = self.env.observation_space
+        self.action_space = self.env.action_space
+
+    def step(self, action):
+        action = np.clip(action, 0, 1)
+        next_state, reward, done, info = self.env.step(action)
+        return np.asarray(next_state) / math.pi, reward, done, info
+
+    def random_action(self):
+        return self.env.action_space.sample()
+
+    def reset(self):
+        state = self.env.reset(difficulty=0, seed=np.random.randint(0, 10000000))
+        return np.asarray(state) / math.pi
 
 # KL divergence with itself, holding first argument fixed
 def gauss_selfKL_firstfixed(mu, logstd):

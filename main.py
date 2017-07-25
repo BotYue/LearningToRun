@@ -6,12 +6,13 @@ from model import *
 import argparse
 from rollouts import *
 import json
-
-
+import sys
+import pickle
 
 parser = argparse.ArgumentParser(description='TRPO.')
 # these parameters should stay the same
-parser.add_argument("--task", type=str, default='BipedalWalker-v2')
+# parser.add_argument("--task", type=str, default='BipedalWalker-v2')
+parser.add_argument("--task", type=str, default='LTR')
 parser.add_argument("--timesteps_per_batch", type=int, default=10000)
 parser.add_argument("--n_steps", type=int, default=6000000)
 parser.add_argument("--gamma", type=float, default=.99)
@@ -26,13 +27,16 @@ parser.add_argument("--timestep_adapt", type=int, default=0)
 parser.add_argument("--kl_adapt", type=float, default=0)
 
 args = parser.parse_args()
-args.max_pathlength = gym.spec(args.task).timestep_limit
+args.n_steps = sys.maxsize
+# args.max_pathlength = gym.spec(args.task).timestep_limit
 
 learner_tasks = multiprocessing.JoinableQueue()
 learner_results = multiprocessing.Queue()
-learner_env = gym.make(args.task)
+# learner_env = gym.make(args.task)
+learner_env = LTR()
+args.max_pathlength = learner_env.env.timestep_limit
 
-learner = TRPO(args, learner_env.observation_space, learner_env.action_space, learner_tasks, learner_results)
+learner = TRPO(args, learner_env.env.observation_space, learner_env.env.action_space, learner_tasks, learner_results)
 learner.start()
 rollouts = ParallelRollout(args)
 
@@ -53,14 +57,14 @@ history['maxkl'] = []
 last_reward = -1000000
 recent_total_reward = 0
 
-totalsteps = 0;
+totalsteps = 0
 
 starting_timesteps = args.timesteps_per_batch
 starting_kl = args.max_kl
 
 iteration = 0
 while True:
-    iteration += 1;
+    iteration += 1
 
     # runs a bunch of async processes that collect rollouts
     rollout_start = time.time()
@@ -138,5 +142,8 @@ while True:
         break
 
     rollouts.set_policy_weights(new_policy_weights)
+    if iteration % 2 == 0:
+        with open('%s-weights.bin' % (args.task), 'wb') as f:
+            pickle.dump(new_policy_weights, f)
 
 rollouts.end()

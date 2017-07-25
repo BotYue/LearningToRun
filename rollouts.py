@@ -24,11 +24,12 @@ class Actor(multiprocessing.Process):
         return act.ravel(), action_dist_mu, action_dist_logstd
 
     def run(self):
+        self.env = LTR()
 
-        self.env = gym.make(self.args.task)
-        self.env.seed(randint(0,999999))
-        if self.monitor:
-            self.env.monitor.start('monitor/', force=True)
+        # self.env = gym.make(self.args.task)
+        # self.env.seed(randint(0,999999))
+        # if self.monitor:
+        #     self.env.monitor.start('monitor/', force=True)
 
         # tensorflow variables (same as in model.py)
         self.observation_size = self.env.observation_space.shape[0]

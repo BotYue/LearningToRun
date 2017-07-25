@@ -2,3 +2,4 @@ MUJUCO_LOG.txt
 *.pyc
 paper/
 .idea
+*.log
