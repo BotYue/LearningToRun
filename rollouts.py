@@ -6,6 +6,7 @@ import gym
 import time
 import copy
 from random import randint
+import pickle
 
 class Actor(multiprocessing.Process):
     def __init__(self, args, task_q, result_q, actor_id, monitor):
@@ -14,7 +15,7 @@ class Actor(multiprocessing.Process):
         self.result_q = result_q
         self.args = args
         self.monitor = monitor
-
+        self.actor_id = actor_id
 
     def act(self, obs):
         obs = np.expand_dims(obs, 0)
@@ -80,6 +81,9 @@ class Actor(multiprocessing.Process):
                 # an actor doesn't finish updating before the other actors can accept their own tasks.
                 time.sleep(0.1)
                 self.task_q.task_done()
+            with open('filter-params-%d.bin' % (self.actor_id), 'wb') as f:
+                pickle.dump(filter.state_dict(), f)
+
         return
 
     def rollout(self):

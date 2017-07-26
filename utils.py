@@ -90,6 +90,16 @@ class Filter:
         self.n = 0.
         self.filter_mean = filter_mean
 
+    def state_dict(self):
+        return {'m1': self.m1,
+                'v': self.v,
+                'n': self.n}
+
+    def load_state_dict(self, saved):
+        self.m1 = saved['m1']
+        self.v = saved['v']
+        self.n = saved['n']
+
     def __call__(self, o):
         self.m1 = self.m1 * (self.n / (self.n + 1)) + o    * 1/(1 + self.n)
         self.v = self.v * (self.n / (self.n + 1)) + (o - self.m1)**2 * 1/(1 + self.n)

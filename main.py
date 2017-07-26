@@ -142,9 +142,8 @@ while True:
         break
 
     rollouts.set_policy_weights(new_policy_weights)
-    if iteration % 5 == 0:
-        with open('%s-parmas.bin' % (args.task), 'wb') as f:
-            pickle.dump({'weights': new_policy_weights,
-                         'filter': filter}, f)
+    if iteration % 1 == 0:
+        with open('%s-params.bin' % (args.task), 'wb') as f:
+            pickle.dump(new_policy_weights, f)
 
 rollouts.end()

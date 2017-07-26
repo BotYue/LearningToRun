@@ -41,10 +41,13 @@ class Actor:
 
 
 def test():
-    with open('weights_difficulty_0.bin', 'rb') as f:
-        saved_weights = pickle.load(f)
+    with open('LTR-params.bin', 'rb') as f:
+        policy = pickle.load(f)
+    with open('filter-params-111.bin', 'rb') as f:
+        filter_param = pickle.load(f)
     actor = Actor()
-    actor.set_policy(saved_weights)
+    actor.set_policy(policy)
+    filter.load_state_dict(filter_param)
 
     env = LTR(visualize=False, difficulty=0)
     state = filter(env.reset())
