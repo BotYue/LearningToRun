@@ -8,10 +8,11 @@ import math
 class LTR:
     name = 'LearningToRun'
     success_threshold = 2000
-    def __init__(self):
-        self.env = RunEnv(visualize=False)
+    def __init__(self, difficulty=0, visualize=False):
+        self.env = RunEnv(visualize=visualize)
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
+        self.difficulty = difficulty
 
     def step(self, action):
         action = np.clip(action, 0, 1)
@@ -22,7 +23,7 @@ class LTR:
         return self.env.action_space.sample()
 
     def reset(self):
-        state = self.env.reset(difficulty=0, seed=np.random.randint(0, 10000000))
+        state = self.env.reset(difficulty=self.difficulty, seed=np.random.randint(0, 10000000))
         return np.asarray(state) / math.pi
 
 # KL divergence with itself, holding first argument fixed
