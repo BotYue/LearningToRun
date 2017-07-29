@@ -43,7 +43,12 @@ rollouts = ParallelRollout(args)
 learner_tasks.put(1)
 learner_tasks.join()
 starting_weights = learner_results.get()
-rollouts.set_policy_weights(starting_weights)
+with open('start_policy.bin', 'rb') as f:
+    policy = pickle.load(f)
+with open('start_filter.bin', 'rb') as f:
+    filter_param = pickle.load(f)
+rollouts.set_policy_weights(policy)
+filter.load_state_dict(filter_param)
 
 start_time = time.time()
 history = {}

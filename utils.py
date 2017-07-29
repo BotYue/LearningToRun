@@ -8,7 +8,7 @@ import math
 class LTR:
     name = 'LearningToRun'
     success_threshold = 2000
-    def __init__(self, difficulty=0, visualize=False):
+    def __init__(self, difficulty=2, visualize=False):
         self.env = RunEnv(visualize=visualize)
         self.observation_space = self.env.observation_space
         self.action_space = self.env.action_space
