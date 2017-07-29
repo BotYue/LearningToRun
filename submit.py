@@ -35,8 +35,8 @@ class Actor:
         obs = np.expand_dims(obs, 0)
         action_dist_mu, action_dist_logstd = self.session.run([self.action_dist_mu, self.action_dist_logstd], feed_dict={self.obs: obs})
         # samples the guassian distribution
-        # act = action_dist_mu + np.exp(action_dist_logstd)*np.random.randn(*action_dist_logstd.shape)
-        act = action_dist_mu
+        act = action_dist_mu + np.exp(action_dist_logstd)*np.random.randn(*action_dist_logstd.shape)
+        # act = action_dist_mu
         return act.ravel()
 
 
@@ -49,7 +49,7 @@ def test():
     actor.set_policy(policy)
     filter.load_state_dict(filter_param)
 
-    env = LTR(visualize=False, difficulty=0)
+    env = LTR(visualize=True, difficulty=0)
     state = filter(env.reset())
 
     # env = RunEnv(visualize=False)
@@ -69,17 +69,23 @@ def submit():
     crowdai_token = "0f526b098e86a8f6d91d3bc2af31b71b"
     client = Client(remote_base)
 
-    with open('weights_difficulty_0.bin', 'rb') as f:
-        saved_weights = pickle.load(f)
+    with open('LTR-params.bin', 'rb') as f:
+        policy = pickle.load(f)
+    with open('filter-params-111.bin', 'rb') as f:
+        filter_param = pickle.load(f)
     actor = Actor()
-    actor.set_policy(saved_weights)
+    actor.set_policy(policy)
+    filter.load_state_dict(filter_param)
+
+    def normalize_state(state):
+        return filter(np.asarray(state) / math.pi)
 
     # Create environment
     state = client.env_create(crowdai_token)
 
     total_reward = 0.0
     while True:
-        action = actor.act(np.asarray(state))
+        action = actor.act(normalize_state(state))
         [state, reward, done, info] = client.env_step(action.tolist(), True)
         if done:
             state = client.env_reset()
