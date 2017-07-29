@@ -49,7 +49,7 @@ def test():
     actor.set_policy(policy)
     filter.load_state_dict(filter_param)
 
-    env = LTR(visualize=True, difficulty=0)
+    env = LTR(visualize=False, difficulty=2)
     state = filter(env.reset())
 
     # env = RunEnv(visualize=False)
@@ -94,6 +94,6 @@ def submit():
     client.submit()
 
 if __name__ == '__main__':
-    test()
-    # submit()
+    # test()
+    submit()
 
